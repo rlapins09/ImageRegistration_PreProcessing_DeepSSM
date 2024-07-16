@@ -42,6 +42,7 @@ def register_images(fixed_image, moving_image):
     registration_method.SetInterpolator(sitk.sitkLinear)
     registration_method.SetOptimizerAsGradientDescent(learningRate=1.0, numberOfIterations=100)
     registration_method.SetOptimizerScalesFromPhysicalShift()
+    registration_method.SetInitialTransform(initial_transform, inPlace=False)
 
     
     final_transform = registration_method.Execute(sitk.Cast(fixed_image, sitk.sitkFloat32),
@@ -54,9 +55,8 @@ def save_transform(transform, file_path):
     sitk.WriteTransform(transform, file_path)
 
 # Apply the Transform to a .STL File
-def apply_transform_to_stl(transform_file, stl_file, output_stl_file):
-    transform = sitk.ReadTransform(transform_file)
-    stl_mesh = Mesh.from_file(stl_file)
+def apply_transform_to_stl(transform, stl_mesh, output_stl_file):
+    transform = transform
 
     # Create an empty list to store transformed points
     transformed_points = []
@@ -105,11 +105,60 @@ def show_registration(fixed_image, moving_image, transform):
 def write_transformed_image_to_nrrd(transformed_image, output_file_path):
     sitk.WriteImage(transformed_image, output_file_path)
 
-def apple_transform_to_img(transform, img):
+def apply_transform_to_img(transform, img, img_ref):
     resampler = sitk.ResampleImageFilter()
-    resampler.SetReferenceImage(img)
+    resampler.SetReferenceImage(img_ref)
     resampler.SetInterpolator(sitk.sitkLinear)
     resampler.SetDefaultPixelValue(0)
     resampler.SetTransform(transform)
     transformed_image = resampler.Execute(img)
     return transformed_image
+
+def reflect_image_across_x(image):
+    flipped_filter = sitk.FlipImageFilter()
+    flipped_filter.SetFlipAxes([False, False, False])  # Reflect across the x-axis
+    reflected_image = flipped_filter.Execute(image)
+    
+    # Adjust the direction matrix to account for the reflection
+    direction = list(reflected_image.GetDirection())
+    direction[0] = -direction[0]  # Invert the x-direction
+    reflected_image.SetDirection(direction)
+    
+    return reflected_image
+
+def reflect_image_if_needed(image, filename):
+    ref = False
+    if filename.endswith("_L") or filename.endswith("_Left"):
+        reflected = reflect_image_across_x(image)  
+        print("Reflected: " + filename) 
+        ref = True
+        return reflected, ref
+    else:
+        return image, ref
+
+
+def save_image_as_nrrd(image, filename):
+    writer = sitk.ImageFileWriter()
+    writer.SetFileName(filename)
+    writer.Execute(image)
+
+def reflect_stl_mesh(stl_file_path, axis='x'):
+    stl_mesh = Mesh.from_file(stl_file_path)
+    
+    if axis == 'x':
+        stl_mesh.vectors[:, :, 0] = -stl_mesh.vectors[:, :, 0]
+    elif axis == 'y':
+        stl_mesh.vectors[:, :, 1] = -stl_mesh.vectors[:, :, 1]
+    elif axis == 'z':
+        stl_mesh.vectors[:, :, 2] = -stl_mesh.vectors[:, :, 2]
+    else:
+        raise ValueError("Invalid axis for reflection. Use 'x', 'y', or 'z'.")
+    
+    # stl_mesh.save(output_path)
+    # print(f"Reflected STL saved to {output_path}")
+    return stl_mesh
+
+
+def read_stl(stl_file_path):
+    stl_mesh = Mesh.from_file(stl_file_path)
+    return stl_mesh

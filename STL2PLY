@@ -1,0 +1,25 @@
+import trimesh
+import os
+
+def stl_to_ply(stl_file, ply_file):
+    # Load the STL file
+    mesh = trimesh.load_mesh(stl_file)
+
+    # Export the mesh as a PLY file
+    mesh.export(ply_file, file_type='ply')
+
+
+ply_path = "L:/Project_Data/Utah_WBCT/OA/DeepSSM/06_Projects/STOA/STOA_DeepSSM_7_10_2024/plys"
+stl_path = "L:/Project_Data/Utah_WBCT/OA/DeepSSM/01_STLs/STOA"
+
+stl_folders = os.listdir(stl_path)
+
+for i in range(0,len(stl_folders)):
+    folder = os.path.join(stl_path,stl_folders[i])
+    filename = os.listdir(folder)
+    path = os.path.join(stl_path, folder, filename[0])
+    
+    ply_out = os.path.join(ply_path, stl_folders[i] + ".ply")
+
+    stl_to_ply(path, ply_out)
+    print(ply_out)
