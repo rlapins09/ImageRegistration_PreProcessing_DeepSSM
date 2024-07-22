@@ -55,7 +55,7 @@ nrrd_path = "L:/Project_Data/Utah_WBCT/OA/DeepSSM/06_Projects/STOA/STOA_DeepSSM_
 
 pts = os.listdir(path)
 
-for i in range(len(pts)):
+for i in range(0,1):
     ii = pts[i]
     dcm_path = os.path.join(path, ii)
     
@@ -63,6 +63,8 @@ for i in range(len(pts)):
     dcm = check_laterality(dcm_img,ii)
     # dcm_sitk = sitk.GetImageFromArray(dcm)
     dcm_down = RF.resample_image_with_scaling(dcm, 5.0) 
+
+    print(dcm_down.GetSpacing())
 
     nrrd_file_path = os.path.join(nrrd_path, ii + ".nrrd")
 
