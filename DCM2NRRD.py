@@ -50,12 +50,13 @@ def check_laterality(image, pt_name, threshold=300):
     return img_cropped
 
 
-path = "L:/Project_Data/Utah_WBCT/OA/DeepSSM/03_WBCT/STOA"
-nrrd_path = "L:/Project_Data/Utah_WBCT/OA/DeepSSM/06_Projects/STOA/STOA_DeepSSM_7_10_2024/images"
+##### UNCOMMENT PATH and NRRD_PATH AND ENTER THE CORRECT PATHS #####
+# path = ""
+# nrrd_path = ""
 
 pts = os.listdir(path)
 
-for i in range(0,1):
+for i in range(0,len(pts)):
     ii = pts[i]
     dcm_path = os.path.join(path, ii)
     
@@ -64,7 +65,8 @@ for i in range(0,1):
     # dcm_sitk = sitk.GetImageFromArray(dcm)
     dcm_down = RF.resample_image_with_scaling(dcm, 5.0) 
 
-    print(dcm_down.GetSpacing())
+    if i == len(pts)-1: 
+        print(dcm_down.GetSpacing())
 
     nrrd_file_path = os.path.join(nrrd_path, ii + ".nrrd")
 
