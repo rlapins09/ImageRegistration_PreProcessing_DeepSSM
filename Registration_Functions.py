@@ -11,13 +11,14 @@ def import_dicom_series(directory):
     image = reader.Execute()
     return image
 
-# Resample Image with Scaling Factor
-def resample_image_with_scaling(image, scaling_factor):
+# Resample Image with Pixel Spacing
+def resample_image_with_pixel_spacing(image, px, py, pz):
     original_spacing = image.GetSpacing()
     original_size = image.GetSize()
 
-    new_spacing = [ospc * scaling_factor for ospc in original_spacing]
-    new_size = [int(round(osz / scaling_factor)) for osz in original_size]
+    new_spacing = [px, py, pz]
+    scaling_factor = [ospc / pspc for ospc, pspc in zip(original_spacing, new_spacing)]
+    new_size = [int(round(osz * sf)) for osz, sf in zip(original_size, scaling_factor)]
 
     resampler = sitk.ResampleImageFilter()
     resampler.SetOutputSpacing(new_spacing)
